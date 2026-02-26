@@ -1,0 +1,38 @@
+name: Daily GitHub Trending
+
+on:
+  # 定时执行：每天北京时间 9:00（UTC 1:00）
+  schedule:
+    - cron: '0 1 * * *'
+  
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  fetch-and-send:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run trending bot
+        env:
+          # 必需：飞书群机器人 Webhook 地址
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          # 可选：Webhook 签名密钥（如果开启了安全加签）
+          FEISHU_SECRET: ${{ secrets.FEISHU_SECRET }}
+          # 可选：飞书应用凭证（用于创建飞书文档）
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+        run: |
+          python scripts/fetch_trending.py
